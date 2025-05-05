@@ -209,7 +209,7 @@ elif page == "🎯 Predicción":
         vivienda = st.selectbox("Vivienda", [1, 2, 3], format_func=lambda x: ["Propia", "Alquiler", "Otros"][x-1])
         num_dependientes = st.number_input("Número de Dependientes", min_value=0, value=2)
         historial_pagos = st.selectbox("Historial de Pagos", [0, 1, 2], 
-    format_func=lambda x: "Sin atrasos" if x == 0 else "1 atraso" if x == 1 else "2+ atrasos")
+    format_func=lambda x: "Sin atrasos" if x == 0 else "1 atraso" if x == 1 else "2+ atrasos")  
         accion_legal = st.selectbox("Acciones Legales", [0, 1], format_func=lambda x: "Sí" if x == 1 else "No")
     
     # Hacer predicción
