@@ -1,4 +1,3 @@
-# random_forest_app.py
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -11,31 +10,26 @@ from sklearn.metrics import classification_report, confusion_matrix, roc_auc_sco
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-# Configuración de la página
 st.set_page_config(
     page_title="Predictor de Deudas - Random Forest",
     page_icon="💰",
     layout="wide"
 )
 
-# Título principal
 st.title("🏦 Sistema de Predicción de Deudas con Random Forest")
 st.markdown("---")
 
-# Sidebar para navegación
 st.sidebar.title("🚀 Navegación")
 page = st.sidebar.radio(
     "Ir a",
     ["📊 Datos", "🤖 Modelo", "🎯 Predicción", "📈 Resultados", "📋 Información"]
 )
 
-# Cargar datos
 @st.cache_data
 def load_data():
     df = pd.read_csv("data.csv")
     return df
 
-# Entrenar modelo
 @st.cache_resource
 def train_model(df):
     X = df.drop(['cliente_id', 'default'], axis=1)
@@ -47,10 +41,8 @@ def train_model(df):
     
     return model, X_train, X_test, y_train, y_test, X.columns
 
-# Cargar datos
 df = load_data()
 
-# Página 1: Datos
 if page == "📊 Datos":
     st.header("📊 Análisis de Datos")
     
@@ -68,7 +60,6 @@ if page == "📊 Datos":
     st.subheader("Estadísticas Descriptivas")
     st.dataframe(df.describe(), use_container_width=True)
     
-    # Visualizaciones interactivas
     col1, col2 = st.columns(2)
     
     with col1:
@@ -102,13 +93,11 @@ if page == "📊 Datos":
     fig_corr.update_layout(width=800, height=800)
     st.plotly_chart(fig_corr, use_container_width=True)
 
-# Página 2: Modelo
 elif page == "🤖 Modelo":
     st.header("🤖 Entrenamiento y Evaluación del Modelo")
     
     model, X_train, X_test, y_train, y_test, feature_names = train_model(df)
     
-    # Métricas principales
     y_pred = model.predict(X_test)
     y_pred_proba = model.predict_proba(X_test)[:, 1]
     
@@ -123,18 +112,15 @@ elif page == "🤖 Modelo":
         st.metric("ROC AUC", f"{roc_auc:.3f}")
     
     with col3:
-        # Recall
         from sklearn.metrics import recall_score
         recall = recall_score(y_test, y_pred)
         st.metric("Recall", f"{recall:.2%}")
     
     with col4:
-        # F1-score
         from sklearn.metrics import f1_score
         f1 = f1_score(y_test, y_pred)
         st.metric("F1-Score", f"{f1:.3f}")
     
-    # Matrices de confusión
     col1, col2 = st.columns(2)
     
     with col1:
@@ -165,7 +151,6 @@ elif page == "🤖 Modelo":
                               title='Curva ROC')
         st.plotly_chart(fig_roc, use_container_width=True)
     
-    # Importancia de características
     st.subheader("Importancia de Características")
     feature_importance = pd.DataFrame({
         'feature': feature_names,
@@ -180,13 +165,11 @@ elif page == "🤖 Modelo":
     fig_importance.update_layout(yaxis=dict(autorange="reversed"))
     st.plotly_chart(fig_importance, use_container_width=True)
 
-# Página 3: Predicción
 elif page == "🎯 Predicción":
     st.header("🎯 Predicción de Nuevos Clientes")
     
     model, _, _, _, _, feature_names = train_model(df)
     
-    # Formulario para nueva predicción
     st.subheader("Ingrese los datos del cliente:")
     
     col1, col2, col3 = st.columns(3)
@@ -212,7 +195,6 @@ elif page == "🎯 Predicción":
     format_func=lambda x: "Sin atrasos" if x == 0 else "1 atraso" if x == 1 else "2+ atrasos")  
         accion_legal = st.selectbox("Acciones Legales", [0, 1], format_func=lambda x: "Sí" if x == 1 else "No")
     
-    # Hacer predicción
     if st.button("🔮 Predecir Riesgo", type="primary"):
         new_data = pd.DataFrame({
             'edad': [edad],
@@ -249,7 +231,6 @@ elif page == "🎯 Predicción":
             risk_level = "🔴 ALTO" if probability > 0.7 else "🟡 MEDIO" if probability > 0.4 else "🟢 BAJO"
             st.metric("Nivel de Riesgo", risk_level)
         
-        # Visualización de probabilidad
         fig_prob = go.Figure(go.Indicator(
             mode="gauge+number",
             value=probability * 100,
@@ -266,20 +247,17 @@ elif page == "🎯 Predicción":
         ))
         st.plotly_chart(fig_prob, use_container_width=True)
 
-# Página 4: Resultados
 elif page == "📈 Resultados":
     st.header("📈 Análisis de Resultados")
     
     model, _, _, _, _, feature_names = train_model(df)
     
-    # Análisis de importancia
     st.subheader("Análisis Avanzado de Importancia")
     feature_importance = pd.DataFrame({
         'feature': feature_names,
         'importance': model.feature_importances_
     }).sort_values('importance', ascending=False)
     
-    # Crear gráfico de barras con colores y estilo mejorado
     fig_importance = px.bar(
         feature_importance.head(10),
         x='importance',
@@ -293,10 +271,8 @@ elif page == "📈 Resultados":
     fig_importance.update_layout(yaxis=dict(autorange="reversed"))
     st.plotly_chart(fig_importance, use_container_width=True)
     
-    # Análisis por grupos
     st.subheader("Análisis por Grupos de Riesgo")
     
-    # Agregar predicciones al DataFrame original
     X = df.drop(['cliente_id', 'default'], axis=1)
     y_pred_proba = model.predict_proba(X)[:, 1]
     df_analysis = df.copy()
@@ -304,7 +280,6 @@ elif page == "📈 Resultados":
     df_analysis['risk_group'] = pd.cut(y_pred_proba, bins=[0, 0.2, 0.5, 0.8, 1.0], 
                                       labels=['Bajo', 'Medio', 'Alto', 'Muy Alto'])
     
-    # Visualización por grupos de riesgo
     risk_stats = df_analysis.groupby('risk_group').agg({
         'edad': 'mean',
         'ingreso_mensual': 'mean',
@@ -331,7 +306,6 @@ elif page == "📈 Resultados":
     fig_risk_groups.update_layout(height=800, showlegend=False)
     st.plotly_chart(fig_risk_groups, use_container_width=True)
 
-# Página 5: Información
 elif page == "📋 Información":
     st.header("📋 Información sobre el Sistema")
     
@@ -385,7 +359,6 @@ elif page == "📋 Información":
     - Actualizar regularmente con nuevos datos
     """)
     
-    # Información técnica
     with st.expander("🔧 Información Técnica"):
         st.markdown("""
         **Bibliotecas utilizadas:**
@@ -405,7 +378,5 @@ elif page == "📋 Información":
         ```
         """)
 
-# Footer
 st.markdown("---")
-st.markdown("💡 **Desarrollado para análisis de riesgo crediticio**")
-st.markdown("🔒 **Datos confidenciales - Solo para uso interno**")
+st.markdown("Laboratorio de IA - 2025")
